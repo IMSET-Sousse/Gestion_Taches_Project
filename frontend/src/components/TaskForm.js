@@ -1,46 +1,57 @@
-// TaskForm.js
 import React, { useState } from 'react';
-import axios from 'axios';
+import { TextField, Button, Box, Checkbox, FormControlLabel } from '@mui/material';
 
-const TaskForm = () => {
-    const [task, setTask] = useState({ title: '', description: '', priority: '' });
+const TaskForm = ({ onSubmit, initialData }) => {
+    const [formData, setFormData] = useState(
+        initialData || { title: '', description: '', is_completed: false, user_id: '' }
+    );
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setTask({ ...task, [name]: value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleCheckboxChange = (e) => {
+        setFormData({ ...formData, is_completed: e.target.checked });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('/api/tasks', task)
-            .then(response => alert('Task created'))
-            .catch(error => console.error(error));
+        onSubmit(formData);
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+                label="Title"
                 name="title"
-                value={task.title}
+                value={formData.title}
                 onChange={handleChange}
-                placeholder="Task Title"
+                required
             />
-            <textarea
+            <TextField
+                label="Description"
                 name="description"
-                value={task.description}
+                value={formData.description}
                 onChange={handleChange}
-                placeholder="Task Description"
+                multiline
+                rows={3}
             />
-            <input
-                type="text"
-                name="priority"
-                value={task.priority}
+            <FormControlLabel
+                control={<Checkbox checked={formData.is_completed} onChange={handleCheckboxChange} />}
+                label="Completed"
+            />
+            <TextField
+                label="User ID"
+                name="user_id"
+                type="number"
+                value={formData.user_id}
                 onChange={handleChange}
-                placeholder="Priority"
+                required
             />
-            <button type="submit">Add Task</button>
-        </form>
+            <Button type="submit" variant="contained" color="primary">
+                Submit
+            </Button>
+        </Box>
     );
 };
 
