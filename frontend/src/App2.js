@@ -5,7 +5,7 @@ import UserTable from './components/UserTable';
 import TaskForm from './components/TaskForm';
 import TaskTable from './components/TaskTable';
 import { fetchUsers, addUser, deleteUser, fetchTasks, addTask, deleteTask } from './api';
- 
+
 const App = () => {
     const [currentView, setCurrentView] = useState('users');
     const [users, setUsers] = useState([]);
@@ -13,32 +13,40 @@ const App = () => {
     const [editingUser, setEditingUser] = useState(null);
     const [editingTask, setEditingTask] = useState(null);
 
-     useEffect(() => {
-            const loadData = async () => {
-                const usersData = await fetchUsers();
-                setUsers(usersData);
-    
-                const tasksData = await fetchTasks();
-                setTasks(tasksData);
-            };
-            loadData();
-        }, []);
+    // Fetch users and tasks on component mount
+    useEffect(() => {
+        const loadData = async () => {
+            const usersData = await fetchUsers();
+            setUsers(usersData);
 
-        const handleNavigation = (view) => {
-            setCurrentView(view);
+            const tasksData = await fetchTasks();
+            setTasks(tasksData);
         };
+        loadData();
+    }, []);
+
+    // Navigation handler
+    const handleNavigation = (view) => {
+        setCurrentView(view);
+    };
+
+    // User management handlers
     const handleAddUser = async (user) => {
-            const newUser = await addUser(user);
-            setUsers([...users, newUser]);
-        };
-const handleDeleteUser = async (id) => {
+        const newUser = await addUser(user);
+        setUsers([...users, newUser]);
+    };
+
+    const handleDeleteUser = async (id) => {
         await deleteUser(id);
         setUsers(users.filter((user) => user.id !== id));
     };
- const handleAddTask = async (task) => {
+
+    // Task management handlers
+    const handleAddTask = async (task) => {
         const newTask = await addTask(task);
         setTasks([...tasks, newTask]);
     };
+
     const handleDeleteTask = async (id) => {
         await deleteTask(id);
         setTasks(tasks.filter((task) => task.id !== id));
@@ -66,4 +74,5 @@ const handleDeleteUser = async (id) => {
         </div>
     );
 };
+
 export default App;
