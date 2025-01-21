@@ -5,7 +5,9 @@ Le projet consiste à développer une application web de gestion des tâches, co
 ## Analyse des Exigences
 ### Objectifs Clés
 -Fournir une plateforme simple et intuitive.
+
 -Faciliter la collaboration grâce à des outils partagés.
+
 -Offrir un suivi clair et visuel des tâches et des projets.
 ### Cibles Principales
 -Équipes de projet : startups, PME, grandes entreprises.
