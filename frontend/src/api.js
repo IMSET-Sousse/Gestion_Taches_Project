@@ -1,119 +1,103 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+const API_URL = "http://127.0.0.1:5000/api"; // L'URL de votre back-end Flask
 
-# Initialisation de l'application Flask et des extensions
-app = Flask(__name__)
-CORS(app)  # Permettre les requêtes cross-origin
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://username:password@localhost:5432/mydatabase'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+// Utilisateurs
+export const fetchUsers = async () => {
+    try {
+        const response = await fetch(`${API_URL}/users`);
+        if (!response.ok) throw new Error("Failed to fetch users");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching users:", error);
+    }
+};
 
-# Modèles
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
+export const addUser = async (user) => {
+    try {
+        const response = await fetch(`${API_URL}/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user),
+        });
+        if (!response.ok) throw new Error("Failed to add user");
+        return await response.json();
+    } catch (error) {
+        console.error("Error adding user:", error);
+    }
+};
 
-    def to_dict(self):
-        return {"id": self.id, "username": self.username, "email": self.email}
+export const updateUser = async (id, user) => {
+    try {
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user),
+        });
+        if (!response.ok) throw new Error("Failed to update user");
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating user:", error);
+    }
+};
 
+export const deleteUser = async (id) => {
+    try {
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to delete user");
+        return await response.json();
+    } catch (error) {
+        console.error("Error deleting user:", error);
+    }
+};
 
-class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    is_completed = db.Column(db.Boolean, default=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+// Tâches
+export const fetchTasks = async () => {
+    try {
+        const response = await fetch(`${API_URL}/tasks`);
+        if (!response.ok) throw new Error("Failed to fetch tasks");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching tasks:", error);
+    }
+};
 
-    user = db.relationship('User', backref=db.backref('tasks', lazy=True))
+export const addTask = async (task) => {
+    try {
+        const response = await fetch(`${API_URL}/tasks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(task),
+        });
+        if (!response.ok) throw new Error("Failed to add task");
+        return await response.json();
+    } catch (error) {
+        console.error("Error adding task:", error);
+    }
+};
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "description": self.description,
-            "is_completed": self.is_completed,
-            "user_id": self.user_id,
-        }
+export const updateTask = async (id, task) => {
+    try {
+        const response = await fetch(`${API_URL}/tasks/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(task),
+        });
+        if (!response.ok) throw new Error("Failed to update task");
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating task:", error);
+    }
+};
 
-
-# Routes pour les utilisateurs
-@app.route('/api/users', methods=['GET'])
-def get_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
-
-
-@app.route('/api/users', methods=['POST'])
-def add_user():
-    data = request.get_json()
-    new_user = User(username=data['username'], email=data['email'])
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message": "User created successfully!", "user": new_user.to_dict()}), 201
-
-
-@app.route('/api/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    data = request.get_json()
-    user = User.query.get_or_404(user_id)
-    user.username = data.get('username', user.username)
-    user.email = data.get('email', user.email)
-    db.session.commit()
-    return jsonify({"message": "User updated successfully!", "user": user.to_dict()})
-
-
-@app.route('/api/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"message": "User deleted successfully!"})
-
-
-# Routes pour les tâches
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    tasks = Task.query.all()
-    return jsonify([task.to_dict() for task in tasks])
-
-
-@app.route('/api/tasks', methods=['POST'])
-def add_task():
-    data = request.get_json()
-    new_task = Task(
-        title=data['title'],
-        description=data.get('description'),
-        is_completed=data.get('is_completed', False),
-        user_id=data['user_id'],
-    )
-    db.session.add(new_task)
-    db.session.commit()
-    return jsonify({"message": "Task created successfully!", "task": new_task.to_dict()}), 201
-
-
-@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
-def update_task(task_id):
-    data = request.get_json()
-    task = Task.query.get_or_404(task_id)
-    task.title = data.get('title', task.title)
-    task.description = data.get('description', task.description)
-    task.is_completed = data.get('is_completed', task.is_completed)
-    db.session.commit()
-    return jsonify({"message": "Task updated successfully!", "task": task.to_dict()})
-
-
-@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    task = Task.query.get_or_404(task_id)
-    db.session.delete(task)
-    db.session.commit()
-    return jsonify({"message": "Task deleted successfully!"})
-
-
-# Point de départ
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Créer les tables dans la base de données si elles n'existent pas
-    app.run(debug=True)
+export const deleteTask = async (id) => {
+    try {
+        const response = await fetch(`${API_URL}/tasks/${id}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to delete task");
+        return await response.json();
+    } catch (error) {
+        console.error("Error deleting task:", error);
+    }
+};
