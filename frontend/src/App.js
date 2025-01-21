@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Navbar from './components/Navbar';
+import Navbar from  './components/Navbar';
 import UserTable from './components/UserTable';
-import TaskTable from './components/TaskTable';
-import UserForm from './components/UserForm';
+import taskTable from './components/taskTable';
+import userForm from './components/userForm';
 import TaskForm from './components/TaskForm';
 
 const App = () => {
@@ -16,6 +16,9 @@ const App = () => {
     <div>
       <Navbar onNavigate={handleNavigation} />
       <div style={{ padding: '20px' }}>
+
+
+
         {currentView === 'users' && (
           <div>
             <h1>Manage Users</h1>
