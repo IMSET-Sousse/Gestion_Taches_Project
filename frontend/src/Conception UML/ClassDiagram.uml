@@ -1,0 +1,55 @@
+@startuml
+
+class Utilisateur {
+  +id: int
+  +nom: string
+  +email: string
+  +mot_de_passe: string
+  +role: string
+  +tasks: List<Tache>
+}
+
+class Tache {
+  +id: int
+  +nom: string
+  +description: string
+  +date_echeance: Date
+  +priorite: string
+  +statut: string
+  +utilisateur_assigne: Utilisateur
+  +projet: Projet
+  +messages: List<Message>
+}
+
+class Projet {
+  +id: int
+  +nom: string
+  +description: string
+  +date_debut: Date
+  +date_fin: Date
+  +taches: List<Tache>
+}
+
+class Message {
+  +id: int
+  +contenu: string
+  +date_envoi: Date
+  +tache: Tache
+  +utilisateur_emetteur: Utilisateur
+}
+
+class Notification {
+  +id: int
+  +type: string
+  +message: string
+  +utilisateur: Utilisateur
+  +date_notification: Date
+}
+
+Utilisateur "1" -- "*" Tache : assigne
+Utilisateur "1" -- "*" Message : envoie
+Tache "*" -- "*" Projet : fait partie de
+Tache "*" -- "*" Message : contient
+Utilisateur "*" -- "*" Notification : reçoit
+
+@enduml

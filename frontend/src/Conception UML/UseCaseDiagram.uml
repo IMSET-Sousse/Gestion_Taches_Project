@@ -1,0 +1,25 @@
+@startuml
+
+actor "Utilisateur" as User
+actor "Manager" as Manager
+actor "Administrateur" as Admin
+
+User -- (Voir Tableau de Bord)
+User -- (Créer Tâche)
+User -- (Consulter Tâche)
+User -- (Modifier Tâche)
+User -- (Supprimer Tâche)
+User -- (Collaborer sur Tâche)      
+User -- (Recevoir Notifications)
+
+Manager -- (Assigner Tâche)
+Manager -- (Visualiser Progrès)
+Manager -- (Suivi Visuel - Kanban)
+
+Admin -- (Gérer Utilisateurs)
+Admin -- (Gérer Rôles)
+
+(Voir Tableau de Bord) --> (Voir Tâches)
+(Collaborer sur Tâche) --> (Envoyer Message)
+
+@enduml

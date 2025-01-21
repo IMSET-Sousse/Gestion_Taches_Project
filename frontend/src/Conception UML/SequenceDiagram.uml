@@ -1,0 +1,14 @@
+@startuml
+actor "Utilisateur" as User
+participant "Frontend (React)" as Frontend
+participant "Backend (Flask)" as Backend
+participant "Base de Données (PostgreSQL)" as DB
+
+User -> Frontend : Soumettre une tâche
+Frontend -> Backend : POST /api/taches
+Backend -> DB : Insérer nouvelle tâche
+DB -> Backend : Confirmer insertion
+Backend -> Frontend : Réponse avec tâche créée
+Frontend -> User : Afficher la tâche
+
+@enduml

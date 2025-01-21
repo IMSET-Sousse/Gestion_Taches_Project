@@ -1,0 +1,14 @@
+@startuml
+package "Frontend" {
+  [React] --> [Redux]
+  [React] --> [Material-UI / Tailwind CSS]
+}
+
+package "Backend" {
+  [Flask API] --> [SQLAlchemy]
+  [Flask API] --> [PostgreSQL]
+}
+
+[Frontend] --> [Backend] : Communique via API RESTful
+[Backend] --> [PostgreSQL] : Gère les données via ORM
+@enduml
