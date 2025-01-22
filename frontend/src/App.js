@@ -1,69 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import UserForm from './components/UserForm';
-import UserTable from './components/UserTable';
-import TaskForm from './components/TaskForm';
-import TaskTable from './components/TaskTable';
-import { fetchUsers, addUser, deleteUser, fetchTasks, addTask, deleteTask } from './api';
- 
-const App = () => {
-    const [currentView, setCurrentView] = useState('users');
-    const [users, setUsers] = useState([]);
-    const [tasks, setTasks] = useState([]);
-    const [editingUser, setEditingUser] = useState(null);
-    const [editingTask, setEditingTask] = useState(null);
+import React, { useState } from "react"
+import Navbar from "./components/Navbar"
+import Dashboard from "./components/Dashboard"
+import TaskTable from "./components/TaskTable"
+import UserTable from "./components/UserTable"
+import TaskForm from "./components/TaskForm"
+import UserForm from "./components/UserForm"
 
-     useEffect(() => {
-            const loadData = async () => {
-                const usersData = await fetchUsers();
-                setUsers(usersData);
-    
-                const tasksData = await fetchTasks();
-                setTasks(tasksData);
-            };
-            loadData();
-        }, []);
+function App() {
+  const [activeSection, setActiveSection] = useState("dashboard")
 
-        const handleNavigation = (view) => {
-            setCurrentView(view);
-        };
-    const handleAddUser = async (user) => {
-            const newUser = await addUser(user);
-            setUsers([...users, newUser]);
-        };
-const handleDeleteUser = async (id) => {
-        await deleteUser(id);
-        setUsers(users.filter((user) => user.id !== id));
-    };
- const handleAddTask = async (task) => {
-        const newTask = await addTask(task);
-        setTasks([...tasks, newTask]);
-    };
-    const handleDeleteTask = async (id) => {
-        await deleteTask(id);
-        setTasks(tasks.filter((task) => task.id !== id));
-    };
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return <Dashboard />
+      case "tasks":
+        return <TaskTable />
+      case "users":
+        return <UserTable />
+      case "addTask":
+        return <TaskForm />
+      case "addUser":
+        return <UserForm />
+      default:
+        return <Dashboard />
+    }
+  }
 
-    return (
-        <div>
-            <Navbar onNavigate={handleNavigation} />
-            <div style={{ padding: '20px' }}>
-                {currentView === 'users' && (
-                    <div>
-                        <h1>Manage Users</h1>
-                        <UserForm onSubmit={handleAddUser} editingUser={editingUser} />
-                        <UserTable users={users} onEdit={setEditingUser} onDelete={handleDeleteUser} />
-                    </div>
-                )}
-                {currentView === 'tasks' && (
-                    <div>
-                        <h1>Manage Tasks</h1>
-                        <TaskForm onSubmit={handleAddTask} editingTask={editingTask} />
-                        <TaskTable tasks={tasks} onEdit={setEditingTask} onDelete={handleDeleteTask} />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-export default App;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Navbar setActiveSection={setActiveSection} />
+        <main className="py-10">{renderActiveSection()}</main>
+      </div>
+    </div>
+  )
+}
+
+export default App
+
