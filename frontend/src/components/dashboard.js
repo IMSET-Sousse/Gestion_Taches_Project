@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import { fetchTasks } from "../api"
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -9,24 +9,23 @@ function Dashboard() {
     overdueTasks: 0,
   })
 
-  const fetchData = () => {
-    axios
-      .get("http://localhost:5000/tasks")
-      .then((response) => {
-        const tasks = response.data
-        const now = new Date()
-        const completedTasks = tasks.filter((task) => task.status === "Done").length
-        const upcomingTasks = tasks.filter((task) => new Date(task.due_date) > now && task.status !== "Done").length
-        const overdueTasks = tasks.filter((task) => new Date(task.due_date) < now && task.status !== "Done").length
+  const fetchData = async () => {
+    try {
+      const tasks = await fetchTasks()
+      const now = new Date()
+      const completedTasks = tasks.filter((task) => task.status === "Done").length
+      const upcomingTasks = tasks.filter((task) => new Date(task.due_date) > now && task.status !== "Done").length
+      const overdueTasks = tasks.filter((task) => new Date(task.due_date) < now && task.status !== "Done").length
 
-        setStats({
-          totalTasks: tasks.length,
-          completedTasks,
-          upcomingTasks,
-          overdueTasks,
-        })
+      setStats({
+        totalTasks: tasks.length,
+        completedTasks,
+        upcomingTasks,
+        overdueTasks,
       })
-      .catch((error) => console.error("Error fetching tasks:", error))
+    } catch (error) {
+      console.error("Error fetching tasks:", error)
+    }
   }
 
   useEffect(() => {

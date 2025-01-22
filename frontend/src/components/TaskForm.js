@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import { addTask, fetchUsers } from "../api"
 
 function TaskForm({ onTaskAdded }) {
   const [title, setTitle] = useState("")
@@ -13,34 +13,37 @@ function TaskForm({ onTaskAdded }) {
   const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/users")
-      .then((response) => setUsers(response.data))
-      .catch((error) => console.error("Error fetching users:", error))
+    const fetchUserData = async () => {
+      try {
+        const userData = await fetchUsers()
+        setUsers(userData)
+      } catch (error) {
+        console.error("Error fetching users:", error)
+      }
+    }
+    fetchUserData()
   }, [])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setSuccessMessage("")
     setErrorMessage("")
 
-    axios
-      .post("http://localhost:5000/tasks", { title, description, status, priority, due_date: dueDate, user_id: userId })
-      .then((response) => {
-        console.log("Task created successfully")
-        setSuccessMessage("Task created successfully!")
-        setTitle("")
-        setDescription("")
-        setStatus("To Do")
-        setPriority("Medium")
-        setDueDate("")
-        setUserId("")
-        if (onTaskAdded) onTaskAdded()
-      })
-      .catch((error) => {
-        console.error("Error creating task:", error)
-        setErrorMessage("Failed to create task. Please try again.")
-      })
+    try {
+      await addTask({ title, description, status, priority, due_date: dueDate, user_id: userId })
+      console.log("Task created successfully")
+      setSuccessMessage("Task created successfully!")
+      setTitle("")
+      setDescription("")
+      setStatus("To Do")
+      setPriority("Medium")
+      setDueDate("")
+      setUserId("")
+      if (onTaskAdded) onTaskAdded()
+    } catch (error) {
+      console.error("Error creating task:", error)
+      setErrorMessage("Failed to create task. Please try again.")
+    }
   }
 
   return (

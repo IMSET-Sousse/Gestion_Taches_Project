@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import { fetchUsers, deleteUser } from "../api"
 
 function UserTable() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const fetchUsers = () => {
+  const fetchUserData = async () => {
     setLoading(true)
-    axios
-      .get("http://localhost:5000/users")
-      .then((response) => {
-        setUsers(response.data)
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error("Error fetching users:", error)
-        setError("Failed to fetch users. Please try again later.")
-        setLoading(false)
-      })
+    try {
+      const userData = await fetchUsers()
+      setUsers(userData)
+      setLoading(false)
+    } catch (error) {
+      console.error("Error fetching users:", error)
+      setError("Failed to fetch users. Please try again later.")
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    fetchUsers()
+    fetchUserData()
   }, [])
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await deleteUser(id)
+      fetchUserData() // Refresh the user list after deletion
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      setError("Failed to delete user. Please try again.")
+    }
+  }
 
   if (loading) return <div className="text-center text-indigo-600">Loading users...</div>
   if (error) return <div className="text-center text-red-500">{error}</div>
@@ -38,11 +46,17 @@ function UserTable() {
         <ul className="divide-y divide-gray-200">
           {users.map((user) => (
             <li key={user.id} className="px-4 py-4 sm:px-6 hover:bg-indigo-50 transition duration-150 ease-in-out">
-              <div className="flex items-center">
+              <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-indigo-600 truncate">{user.username}</p>
                   <p className="text-sm text-gray-500 truncate">{user.email}</p>
                 </div>
+                <button
+                  onClick={() => handleDeleteUser(user.id)}
+                  className="ml-2 px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200"
+                >
+                  Delete
+                </button>
               </div>
             </li>
           ))}

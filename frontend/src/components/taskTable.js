@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import { fetchTasks, deleteTask } from "../api"
 
 function TaskTable() {
   const [tasks, setTasks] = useState([])
@@ -8,24 +8,32 @@ function TaskTable() {
   const [filter, setFilter] = useState({ status: "", priority: "", assignee: "" })
   const [sortBy, setSortBy] = useState({ field: "", direction: "asc" })
 
-  const fetchTasks = () => {
+  const fetchTaskData = async () => {
     setLoading(true)
-    axios
-      .get("http://localhost:5000/tasks")
-      .then((response) => {
-        setTasks(response.data)
-        setLoading(false)
-      })
-      .catch((error) => {
-        console.error("Error fetching tasks:", error)
-        setError("Failed to fetch tasks. Please try again later.")
-        setLoading(false)
-      })
+    try {
+      const taskData = await fetchTasks()
+      setTasks(taskData)
+      setLoading(false)
+    } catch (error) {
+      console.error("Error fetching tasks:", error)
+      setError("Failed to fetch tasks. Please try again later.")
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    fetchTasks()
+    fetchTaskData()
   }, [])
+
+  const handleDeleteTask = async (id) => {
+    try {
+      await deleteTask(id)
+      fetchTaskData() // Refresh the task list after deletion
+    } catch (error) {
+      console.error("Error deleting task:", error)
+      setError("Failed to delete task. Please try again.")
+    }
+  }
 
   const filteredAndSortedTasks = tasks
     .filter(
@@ -112,6 +120,7 @@ function TaskTable() {
                       className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
+                      viewBox="0 0 20 20"
                       fill="currentColor"
                     >
                       <path
@@ -138,6 +147,14 @@ function TaskTable() {
                   </svg>
                   {task.assignee}
                 </div>
+              </div>
+              <div className="mt-2">
+                <button
+                  onClick={() => handleDeleteTask(task.id)}
+                  className="px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200"
+                >
+                  Delete
+                </button>
               </div>
             </li>
           ))}

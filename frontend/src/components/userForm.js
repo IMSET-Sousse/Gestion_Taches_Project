@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import axios from "axios"
+import { addUser } from "../api"
 
 function UserForm({ onUserAdded }) {
   const [username, setUsername] = useState("")
@@ -7,24 +7,22 @@ function UserForm({ onUserAdded }) {
   const [successMessage, setSuccessMessage] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setSuccessMessage("")
     setErrorMessage("")
 
-    axios
-      .post("http://localhost:5000/users", { username, email })
-      .then((response) => {
-        console.log("User created successfully")
-        setSuccessMessage("User created successfully!")
-        setUsername("")
-        setEmail("")
-        if (onUserAdded) onUserAdded()
-      })
-      .catch((error) => {
-        console.error("Error creating user:", error)
-        setErrorMessage("Failed to create user. Please try again.")
-      })
+    try {
+      await addUser({ username, email })
+      console.log("User created successfully")
+      setSuccessMessage("User created successfully!")
+      setUsername("")
+      setEmail("")
+      if (onUserAdded) onUserAdded()
+    } catch (error) {
+      console.error("Error creating user:", error)
+      setErrorMessage("Failed to create user. Please try again.")
+    }
   }
 
   return (
