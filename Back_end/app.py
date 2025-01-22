@@ -1,181 +1,45 @@
-from flask import Flask, jsonify, request, render_template_string, redirect, url_for
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
+from datetime import datetime
 
-# Initialisation de Flask et extensions
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
 db = SQLAlchemy(app)
-CORS(app)  # Permet les requêtes entre origines différentes (CORS)
 
-# Modèles de base de données
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    tasks = db.relationship('Task', backref='user', lazy=True)
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    is_completed = db.Column(db.Boolean, default=False)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    priority = db.Column(db.String(50), nullable=False)
+    due_date = db.Column(db.Date, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# HTML et CSS intégrés
-HTML_TEMPLATE = '''
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Tâches</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
 
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-        }
-
-        form input, form button {
-            margin-bottom: 10px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        form button {
-            background-color: #5cb85c;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        form button:hover {
-            background-color: #4cae4c;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        li.completed {
-            text-decoration: line-through;
-            color: #6c757d;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-            margin-left: 10px;
-        }
-
-        a.delete {
-            color: #dc3545;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Gestion des Tâches</h1>
-
-        <form action="{{ url_for('add_task') }}" method="POST">
-            <input type="text" name="task_title" placeholder="Titre de la tâche" required>
-            <input type="text" name="task_description" placeholder="Description de la tâche">
-            <button type="submit">Ajouter</button>
-        </form>
-
-        <ul>
-            {% for task in tasks %}
-                <li class="{{ 'completed' if task.is_completed else '' }}">
-                    <span>{{ task.title }}</span> - <span>{{ task.description or 'Sans description' }}</span>
-                    {% if not task.is_completed %}
-                        <a href="{{ url_for('complete_task', task_id=task.id) }}">Terminer</a>
-                    {% endif %}
-                    <a href="{{ url_for('delete_task', task_id=task.id) }}" class="delete">Supprimer</a>
-                </li>
-            {% else %}
-                <p>Aucune tâche disponible.</p>
-            {% endfor %}
-        </ul>
-    </div>
-</body>
-</html>
-'''
-
-# Routes
-@app.route('/')
-def home():
-    tasks = Task.query.all()
-    return render_template_string(HTML_TEMPLATE, tasks=tasks)
-
-@app.route('/add_task', methods=['POST'])
-def add_task():
-    title = request.form.get('task_title')
-    description = request.form.get('task_description')
-    if title:
-        new_task = Task(title=title, description=description, is_completed=False)
-        db.session.add(new_task)
+def create_sample_data():
+    # Check if data already exists
+    if User.query.first() is None:
+        # Create sample users
+        user1 = User(username='john_doe', email='john@example.com')
+        user2 = User(username='jane_smith', email='jane@example.com')
+        db.session.add_all([user1, user2])
         db.session.commit()
-    return redirect(url_for('home'))
 
-@app.route('/complete_task/<int:task_id>')
-def complete_task(task_id):
-    task = Task.query.get(task_id)
-    if task:
-        task.is_completed = True
+        # Create sample tasks
+        task1 = Task(title='Complete project proposal', description='Write and submit the project proposal', status='In Progress', priority='High', due_date=datetime(2023, 6, 30), user_id=user1.id)
+        task2 = Task(title='Review code', description='Perform code review for the latest pull request', status='To Do', priority='Medium', due_date=datetime(2023, 6, 25), user_id=user2.id)
+        task3 = Task(title='Update documentation', description='Update the user manual with new features', status='To Do', priority='Low', due_date=datetime(2023, 7, 5), user_id=user1.id)
+        db.session.add_all([task1, task2, task3])
         db.session.commit()
-    return redirect(url_for('home'))
 
-@app.route('/delete_task/<int:task_id>')
-def delete_task(task_id):
-    task = Task.query.get(task_id)
-    if task:
-        db.session.delete(task)
-        db.session.commit()
-    return redirect(url_for('home'))
-
-# Initialisation de la base de données
-with app.app_context():
-    db.create_all()
-
-# Lancer le serveur
 if __name__ == '__main__':
+    db.create_all()
+    create_sample_data()
     app.run(debug=True)
+
