@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -39,7 +39,7 @@ def create_sample_data():
         db.session.commit()
 
 if __name__ == '__main__':
-    db.create_all()
+    # db.create_all()
     create_sample_data()
     app.run(debug=True)
 
